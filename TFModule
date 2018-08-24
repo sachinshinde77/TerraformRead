@@ -1,0 +1,94 @@
+
+You can create your own Terraform Module or use from Terraform Registery
+
+Terraform Registery Example:
+=============================
+module "consul" {
+  source  = "hashicorp/consul/google"
+  version = "0.0.1"
+
+  consul_server_source_image = "abc1235.img"
+  consul_client_cluster_tag_name = "app_cluster"
+}
+
+Own Terraform Module Example:
+==============================
+$ tree
+.
+├── README.md
+├── main.tf
+└── modules
+    ├── instance
+        ├── README.md
+        ├── main.tf
+        ├── outputs.tf
+        └── variables.tf
+
+modules/instance/main.tf
+--------------------------
+resource "google_compute_instance" "default" {
+  name         = "test"
+  machine_type = "${var.machine_type}"
+  zone         = "${var.zone}"
+
+  boot_disk {
+    initialize_params {
+      image = "${var.boot_image}"
+    }
+  }
+
+  network_interface {
+    network = "default"
+  }
+
+  metadata {
+    foo = "bar"
+  }
+
+  metadata_startup_script = "echo hi > /test.txt"
+
+  service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+  }
+}
+
+modules/instance/variables.tf
+---------------------------------
+variable "boot_image" {
+  description = "Image ID for the instance"
+  default = "debian-cloud/debian-8"
+}
+
+variable "machine_type" {
+  description = "Machine type for the instance"
+  default = "n1-standard-1"
+}
+
+variable "zone" {
+  description = "Zone to deploy the instance into"
+  default = "us-central1-a"
+}
+
+modules/instance/outputs.tf
+--------------------------------
+output "id" {
+  value = "${google_compute_instance.default.instance_id}"
+  
+
+main.tf
+-------------
+provider "google_cloud" { }
+
+module "instance" {
+  source = "../modules/instance"
+
+  boot_image = "ubuntu-os-cloud/ubuntu-1604-lts"
+}
+
+output "instance_id" {
+    value = "${modules.instance.id}"
+}
+
+We can now run terraform init to initialize our config and download our module to the local cache. 
+Then run terraform plan and terraform apply as usual.
+
