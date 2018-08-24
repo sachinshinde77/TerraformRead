@@ -92,3 +92,13 @@ output "instance_id" {
 We can now run terraform init to initialize our config and download our module to the local cache. 
 Then run terraform plan and terraform apply as usual.
 
+we set the “source” parameter of the module to a local file path, but Terraform supports other types of module sources, such as Git URLs,
+Mercurial URLs, and arbitrary HTTP URLs.
+Example:
+-----------
+module "frontend" {
+  source = "git::git@github.com:gruntwork-io/infrastructure-modules.git//frontend-app?ref=v0.0.1"
+  min_size = 8
+  max_size = 20
+}
+
